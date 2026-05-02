@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FísicaLab</title>
+<style>
+  :root{--bg:#0a0e1a;--card:#111827;--border:#1e2d45;--accent:#00d4ff;--accent2:#7c3aed;--green:#10b981;--orange:#f59e0b;--text:#e2e8f0;--sub:#94a3b8;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;}
+  header{background:linear-gradient(135deg,#0f172a,#1e1b4b);padding:18px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;}
+  .logo{font-size:1.6rem;font-weight:800;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+  .logo span{font-size:.9rem;font-weight:400;-webkit-text-fill-color:var(--sub);display:block;}
+  .level-toggle{margin-left:auto;display:flex;gap:6px;}
+  .lvl-btn{padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-size:.8rem;transition:all .2s;}
+  .lvl-btn.active{background:var(--accent2);color:#fff;border-color:var(--accent2);}
+  .main-tabs{display:flex;border-bottom:1px solid var(--border);background:#0d1425;padding:0 24px;}
+  .main-tab{padding:14px 28px;cursor:pointer;border-bottom:3px solid transparent;color:var(--sub);font-weight:600;font-size:.95rem;transition:all .2s;}
+  .main-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+  .content{max-width:980px;margin:0 auto;padding:24px 16px;}
+  .sub-tabs{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .sub-tab{padding:8px 20px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--sub);cursor:pointer;font-size:.88rem;transition:all .2s;}
+  .sub-tab.active{background:linear-gradient(135deg,#0ea5e9,#7c3aed);color:#fff;border-color:transparent;}
+  .section{display:none;} .section.active{display:block;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:20px;}
+  .card h3{font-size:1.1rem;margin-bottom:16px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+  canvas{width:100%;border-radius:10px;background:#060d1a;display:block;}
+  .controls{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:16px;align-items:flex-end;}
+  .ctrl-group{display:flex;flex-direction:column;gap:5px;}
+  .ctrl-group label{font-size:.78rem;color:var(--sub);}
+  .ctrl-group input[type=range]{width:130px;accent-color:var(--accent);}
+  .ctrl-group input[type=number]{width:110px;padding:6px 10px;background:#1a2540;border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.9rem;}
+  .val-display{font-size:.82rem;color:var(--accent);font-weight:700;}
+  .btn{padding:9px 22px;border-radius:8px;border:none;cursor:pointer;font-weight:700;font-size:.88rem;transition:all .2s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;}
+  .btn-primary:hover{opacity:.85;transform:translateY(-1px);}
+  .btn-secondary{background:var(--border);color:var(--sub);}
+  .stats{display:flex;flex-wrap:wrap;gap:12px;margin-top:14px;}
+  .stat{background:#0d1a2e;border:1px solid var(--border);border-radius:8px;padding:10px 16px;min-width:130px;}
+  .stat .label{font-size:.72rem;color:var(--sub);text-transform:uppercase;letter-spacing:.05em;}
+  .stat .value{font-size:1.1rem;font-weight:700;color:var(--accent);}
+  .formula-box{background:#060d1a;border:1px solid #00d4ff33;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:.95rem;color:var(--accent);font-family:monospace;line-height:1.7;}
+  .calc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:16px;}
+  .result-box{background:#0a1f12;border:1px solid var(--green);border-radius:8px;padding:14px 18px;margin-top:14px;}
+  .result-box .r-label{font-size:.78rem;color:var(--green);text-transform:uppercase;}
+  .result-box .r-value{font-size:1.5rem;font-weight:800;color:#34d399;}
+
+  /* EXERCISES */
+  .ex-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+  .ex-filter span{font-size:.8rem;color:var(--sub);margin-right:4px;}
+  .filt-btn{padding:5px 14px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;font-size:.78rem;transition:all .2s;}
+  .filt-btn.active{background:var(--accent);color:#000;border-color:var(--accent);}
+  .exercise{background:#0d1425;border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;transition:border .2s;}
+  .exercise:hover{border-color:#2d4a6e;}
+  .exercise-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+  .badge{padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:700;}
+  .badge-em{background:#1e3a5f;color:#60a5fa;}
+  .badge-es{background:#3b1f5e;color:#c084fc;}
+  .badge-topic{background:#1a2e1a;color:#6ee7b7;font-size:.68rem;padding:2px 8px;}
+  .exercise p{font-size:.9rem;line-height:1.65;color:var(--text);}
+  .solution{margin-top:12px;padding:14px;background:#0a1f12;border-radius:8px;border-left:3px solid var(--green);display:none;}
+  .solution.show{display:block;}
+  .solution p{font-size:.85rem;line-height:1.9;color:#a7f3d0;font-family:monospace;white-space:pre-wrap;}
+  .toggle-sol{font-size:.8rem;padding:5px 14px;margin-top:10px;}
+  .nivel-em{display:block;} .nivel-es{display:none;}
+  body.nivel-es .nivel-em{display:none;} body.nivel-es .nivel-es{display:block;}
+  .ex-hidden{display:none;}
+  @media(max-width:600px){header{flex-wrap:wrap;}.main-tab{padding:10px 14px;font-size:.83rem;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">⚛ FísicaLab <span>Aprenda Física na Prática</span></div>
+  </div>
+  <div class="level-toggle">
+    <button class="lvl-btn active" onclick="setLevel('em',this)">Ens. Médio</button>
+    <button class="lvl-btn" onclick="setLevel('es',this)">Ens. Superior</button>
+  </div>
+</header>
+
+<div class="main-tabs">
+  <div class="main-tab active" onclick="setMain('cine',this)">🏃 Cinemática</div>
+  <div class="main-tab" onclick="setMain('dina',this)">⚡ Dinâmica</div>
+</div>
+
+<!-- =================== CINEMÁTICA =================== -->
+<div id="tab-cine" class="content">
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="setSub('cine','sim',this)">🎬 Simulação</div>
+    <div class="sub-tab" onclick="setSub('cine','calc',this)">🧮 Calculadora</div>
+    <div class="sub-tab" onclick="setSub('cine','ex',this)">📝 Exemplos & Exercícios</div>
+  </div>
+
+  <!-- SIM CINE -->
+  <div id="cine-sim" class="section active">
+    <div class="card">
+      <h3>🚀 Lançamento Oblíquo</h3>
+      <div class="controls">
+        <div class="ctrl-group"><label>Velocidade inicial (m/s)</label><input type="range" id="cv0" min="10" max="80" value="40" oninput="updateCineVal()"><span class="val-display" id="cv0-val">40 m/s</span></div>
+        <div class="ctrl-group"><label>Ângulo (°)</label><input type="range" id="cang" min="5" max="85" value="45" oninput="updateCineVal()"><span class="val-display" id="cang-val">45°</span></div>
+        <div class="ctrl-group"><label>Gravidade (m/s²)</label><input type="range" id="cgrav" min="1" max="25" value="10" oninput="updateCineVal()"><span class="val-display" id="cgrav-val">10 m/s²</span></div>
+        <button class="btn btn-primary" onclick="launchProjectile()">▶ Lançar</button>
+        <button class="btn btn-secondary" onclick="resetProjectile()">↺ Reset</button>
+      </div>
+      <canvas id="cine-canvas" height="280"></canvas>
+      <div class="stats">
+        <div class="stat"><div class="label">Alcance</div><div class="value" id="stat-alcance">—</div></div>
+        <div class="stat"><div class="label">Altura Máx.</div><div class="value" id="stat-hmax">—</div></div>
+        <div class="stat"><div class="label">Tempo de Voo</div><div class="value" id="stat-tvoo">—</div></div>
+        <div class="stat"><div class="label">Vx</div><div class="value" id="stat-vx">—</div></div>
+        <div class="stat"><div class="label">Vy inicial</div><div class="value" id="stat-vy">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC CINE -->
+  <div id="cine-calc" class="section">
+    <div class="card">
+      <h3>🧮 MRU</h3>
+      <div class="formula-box">v = Δs / Δt &nbsp;|&nbsp; s = s₀ + v·t</div>
+      <div class="calc-grid">
+        <div class="ctrl-group"><label>s₀ (m)</label><input type="number" id="mru-s0" placeholder="0"/></div>
+        <div class="ctrl-group"><label>v (m/s)</label><input type="number" id="mru-v" placeholder="ex: 20"/></div>
+        <div class="ctrl-group"><label>t (s)</label><input type="number" id="mru-t" placeholder="ex: 5"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcMRU()">Calcular</button>
+      <div id="mru-result" style="display:none" class="result-box"><div class="r-label">Posição final s</div><div class="r-value" id="mru-res-val">—</div></div>
+    </div>
+    <div class="card">
+      <h3>🧮 MRUV</h3>
+      <div class="formula-box">v = v₀ + a·t &nbsp;|&nbsp; s = s₀ + v₀t + ½at² &nbsp;|&nbsp; v² = v₀² + 2aΔs</div>
+      <div class="calc-grid">
+        <div class="ctrl-group"><label>s₀ (m)</label><input type="number" id="mruv-s0" placeholder="0"/></div>
+        <div class="ctrl-group"><label>v₀ (m/s)</label><input type="number" id="mruv-v0" placeholder="ex: 10"/></div>
+        <div class="ctrl-group"><label>a (m/s²)</label><input type="number" id="mruv-a" placeholder="ex: 2"/></div>
+        <div class="ctrl-group"><label>t (s)</label><input type="number" id="mruv-t" placeholder="ex: 4"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcMRUV()">Calcular</button>
+      <div id="mruv-result" style="display:none">
+        <div class="stats">
+          <div class="stat"><div class="label">Posição final</div><div class="value" id="mruv-s">—</div></div>
+          <div class="stat"><div class="label">Velocidade final</div><div class="value" id="mruv-v">—</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🧮 Lançamento Oblíquo</h3>
+      <div class="formula-box">R = v₀²sin(2θ)/g &nbsp;|&nbsp; H = v₀²sin²θ/2g &nbsp;|&nbsp; T = 2v₀sinθ/g</div>
+      <div class="calc-grid">
+        <div class="ctrl-group"><label>v₀ (m/s)</label><input type="number" id="ob-v0" placeholder="ex: 30"/></div>
+        <div class="ctrl-group"><label>θ (°)</label><input type="number" id="ob-ang" placeholder="ex: 45"/></div>
+        <div class="ctrl-group"><label>g (m/s²)</label><input type="number" id="ob-g" placeholder="9.8"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcObliquo()">Calcular</button>
+      <div id="ob-result" style="display:none">
+        <div class="stats">
+          <div class="stat"><div class="label">Alcance R</div><div class="value" id="ob-r">—</div></div>
+          <div class="stat"><div class="label">Altura máx. H</div><div class="value" id="ob-h">—</div></div>
+          <div class="stat"><div class="label">Tempo T</div><div class="value" id="ob-t">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXEMPLOS CINE -->
+  <div id="cine-ex" class="section">
+    <div class="ex-filter">
+      <span>Filtrar:</span>
+      <button class="filt-btn active" onclick="filterEx('cine','todos',this)">Todos</button>
+      <button class="filt-btn" onclick="filterEx('cine','MRU',this)">MRU</button>
+      <button class="filt-btn" onclick="filterEx('cine','MRUV',this)">MRUV</button>
+      <button class="filt-btn" onclick="filterEx('cine','Queda',this)">Queda Livre</button>
+      <button class="filt-btn" onclick="filterEx('cine','Oblíquo',this)">Lançamento Oblíquo</button>
+      <button class="filt-btn" onclick="filterEx('cine','Vertical',this)">Lanç. Vertical</button>
+    </div>
+
+    <!-- MRU -->
+    <div class="exercise" data-topic="MRU">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRU</span><strong>Ex 1 — Velocidade constante</strong></div>
+      <p>Um carro percorre uma rodovia a 90 km/h constante. Qual a posição após 2 horas? Quanto tempo leva para percorrer 270 km?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v = 90 km/h = 25 m/s
+
+① s = s₀ + v·t = 0 + 90 × 2 = 180 km ✔
+
+② t = Δs / v = 270 / 90 = 3 horas ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="MRU">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRU</span><strong>Ex 2 — Dois móveis em sentidos opostos</strong></div>
+      <p>Dois carros partem simultaneamente de cidades distantes 300 km. O carro A vai a 80 km/h e o carro B a 70 km/h, em sentidos opostos (um em direção ao outro). Em quanto tempo se encontram? Onde ocorre o encontro?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Velocidade de aproximação = 80 + 70 = 150 km/h
+
+t = d / v_ap = 300 / 150 = 2 horas ✔
+
+Posição do encontro (a partir de A):
+s_A = 80 × 2 = 160 km de A ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="MRU">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRU</span><strong>Ex 3 — Velocidade média</strong></div>
+      <p>Um ciclista percorre 30 km em 1,5 h e depois mais 20 km em 40 min. Qual é a velocidade média em todo o percurso?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Distância total = 30 + 20 = 50 km
+
+Tempo total = 1,5 h + 40/60 h = 1,5 + 0,667 = 2,167 h
+
+v_méd = Δs / Δt = 50 / 2,167 ≈ 23,1 km/h ✔</p></div>
+    </div>
+
+    <!-- MRUV -->
+    <div class="exercise" data-topic="MRUV">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRUV</span><strong>Ex 4 — Frenagem</strong></div>
+      <p>Um carro a 72 km/h freia com desaceleração de 5 m/s². Em quanto tempo para completamente? Qual a distância de frenagem?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀ = 72 km/h = 20 m/s  |  a = −5 m/s²  |  vf = 0
+
+① Tempo: v = v₀ + at → 0 = 20 − 5t → t = 4 s ✔
+
+② Distância: s = v₀t + ½at²
+   s = 20×4 + ½×(−5)×16
+   s = 80 − 40 = 40 m ✔
+
+Verificação: vf² = v₀² + 2aΔs → 0 = 400 − 10Δs → Δs = 40 m ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="MRUV">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRUV</span><strong>Ex 5 — Trem acelerando</strong></div>
+      <p>Um trem parte do repouso com a = 1,5 m/s². Qual a velocidade após 20 s? Que distância percorreu? Qual a aceleração necessária para atingir 108 km/h em 15 s?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀ = 0  |  a = 1,5 m/s²  |  t = 20 s
+
+① v = 0 + 1,5 × 20 = 30 m/s (108 km/h) ✔
+
+② s = ½ × 1,5 × 400 = 300 m ✔
+
+③ 108 km/h = 30 m/s  →  a = Δv/t = 30/15 = 2 m/s² ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="MRUV">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">MRUV</span><strong>Ex 6 — Ultrapassagem</strong></div>
+      <p>Um carro A trafega a 20 m/s. Um carro B parte do repouso atrás de A com aceleração de 4 m/s². Em quanto tempo B alcança A? Qual a velocidade de B nesse instante?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Quando B alcança A: s_A = s_B
+
+s_A = 20t
+s_B = ½ × 4 × t² = 2t²
+
+2t² = 20t → t(2t − 20) = 0
+t = 10 s ✔
+
+v_B = 4 × 10 = 40 m/s (144 km/h) ✔</p></div>
+    </div>
+
+    <!-- QUEDA LIVRE -->
+    <div class="exercise" data-topic="Queda">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Queda Livre</span><strong>Ex 7 — Pedra em queda</strong></div>
+      <p>Uma pedra é solta do alto de um prédio de 80 m (g = 10 m/s²). Com que velocidade atinge o solo? Quanto tempo leva?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀ = 0  |  h = 80 m  |  g = 10 m/s²
+
+① Tempo: h = ½gt² → 80 = 5t² → t² = 16 → t = 4 s ✔
+
+② Velocidade: v = gt = 10 × 4 = 40 m/s (144 km/h) ✔
+
+Verificação: v² = 2gh = 2×10×80 = 1600 → v = 40 m/s ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Queda">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Queda Livre</span><strong>Ex 8 — Dois objetos em queda</strong></div>
+      <p>Uma pedra A é solta do repouso. 2 segundos depois, uma pedra B é solta do mesmo ponto. Qual a distância entre elas quando A atinge t = 5 s desde o início?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>g = 10 m/s²
+
+Em t = 5 s (A caiu 5 s, B caiu 3 s):
+
+h_A = ½ × 10 × 5² = 125 m
+h_B = ½ × 10 × 3² = 45 m
+
+Distância = 125 − 45 = 80 m ✔</p></div>
+    </div>
+
+    <!-- LANÇAMENTO VERTICAL -->
+    <div class="exercise" data-topic="Vertical">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Lanç. Vertical</span><strong>Ex 9 — Bola lançada para cima</strong></div>
+      <p>Uma bola é lançada verticalmente para cima com v₀ = 30 m/s (g = 10 m/s²). Qual a altura máxima? Quando volta ao ponto de lançamento? Com que velocidade?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀ = 30 m/s  |  g = 10 m/s²
+
+① Altura máx (v = 0):
+   v² = v₀² − 2gh → 0 = 900 − 20h → h = 45 m ✔
+
+② Tempo subida: v = v₀ − gt → t_sub = 30/10 = 3 s
+
+③ Tempo total de voo: T = 2 × t_sub = 6 s ✔
+
+④ Velocidade ao retornar: v = v₀ = 30 m/s (módulo) ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Vertical">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Lanç. Vertical</span><strong>Ex 10 — Bola lançada de uma torre</strong></div>
+      <p>Uma bola é lançada para cima com v₀ = 20 m/s do topo de uma torre de 45 m (g = 10 m/s²). Qual a velocidade ao atingir o solo? Em quanto tempo?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Tomando para cima como positivo, origem no topo:
+
+y = v₀t − ½gt²  →  −45 = 20t − 5t²
+5t² − 20t − 45 = 0  →  t² − 4t − 9 = 0
+
+t = (4 ± √(16 + 36)) / 2 = (4 ± √52) / 2
+t = (4 + 7,21) / 2 ≈ 5,6 s ✔ (descartamos t negativo)
+
+v = v₀ − gt = 20 − 10×5,6 = −36 m/s
+|v| = 36 m/s (para baixo) ✔</p></div>
+    </div>
+
+    <!-- OBLÍQUO -->
+    <div class="exercise" data-topic="Oblíquo">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Lançamento Oblíquo</span><strong>Ex 11 — Ângulo de 37°</strong></div>
+      <p>Um projétil é lançado com v₀ = 50 m/s a 37° acima da horizontal (sen37°≈0,6; cos37°≈0,8; g=10 m/s²). Calcule alcance, altura máxima e tempo de voo.</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀x = 50×0,8 = 40 m/s  |  v₀y = 50×0,6 = 30 m/s
+
+T = 2v₀y/g = 60/10 = 6 s ✔
+R = v₀x × T = 40 × 6 = 240 m ✔
+H = v₀y²/2g = 900/20 = 45 m ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Oblíquo">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Lançamento Oblíquo</span><strong>Ex 12 — Ângulo ideal</strong></div>
+      <p>Para qual ângulo θ o alcance de um projétil é máximo (mesma v₀ e g)? Se v₀ = 60 m/s e g = 10 m/s², qual é esse alcance máximo?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>R = v₀²sin(2θ)/g → máximo quando sin(2θ) = 1
+→ 2θ = 90° → θ = 45° ✔
+
+R_max = v₀²/g = 60²/10 = 3600/10 = 360 m ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Oblíquo">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Lançamento Oblíquo</span><strong>Ex 13 — Equação vetorial</strong></div>
+      <p>Dado r⃗(t) = (4t)î + (3t − 5t²)ĵ (metros/segundos). Determine: a velocidade inicial v⃗₀, a aceleração a⃗, e o instante em que y = 0 novamente.</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v⃗(t) = dr⃗/dt = 4î + (3 − 10t)ĵ
+
+① v⃗₀ = v⃗(0) = 4î + 3ĵ m/s ✔
+
+② a⃗ = dv⃗/dt = −10ĵ m/s² → g = 10 m/s² ✔
+
+③ y = 0: 3t − 5t² = 0 → t(3 − 5t) = 0
+   t = 0 (lançamento) ou t = 0,6 s ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Oblíquo">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Lançamento Oblíquo</span><strong>Ex 14 — Alvo em altitude</strong></div>
+      <p>Um projétil é lançado a 45° com v₀ = 40 m/s do nível do solo (g = 10 m/s²). Há um alvo a 80 m de distância horizontal e 10 m de altura. O projétil acerta o alvo?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v₀x = 40cos45° = 20√2 ≈ 28,28 m/s
+v₀y = 40sin45° = 20√2 ≈ 28,28 m/s
+
+Tempo para x = 80 m:
+t = x / v₀x = 80 / 28,28 ≈ 2,83 s
+
+Altura nesse instante:
+y = v₀y·t − ½gt²
+y = 28,28×2,83 − 5×(2,83)²
+y = 80 − 40,02 ≈ 40 m
+
+40 m ≠ 10 m → Não acerta o alvo
+(passa bem acima) ✔</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== DINÂMICA =================== -->
+<div id="tab-dina" class="content" style="display:none">
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="setSub('dina','sim',this)">🎬 Simulação</div>
+    <div class="sub-tab" onclick="setSub('dina','calc',this)">🧮 Calculadora</div>
+    <div class="sub-tab" onclick="setSub('dina','ex',this)">📝 Exemplos & Exercícios</div>
+  </div>
+
+  <!-- SIM DINA -->
+  <div id="dina-sim" class="section active">
+    <div class="card">
+      <h3>⚡ 2ª Lei de Newton — Bloco sobre superfície</h3>
+      <div class="controls">
+        <div class="ctrl-group"><label>Força aplicada F (N)</label><input type="range" id="dF" min="0" max="200" value="80" oninput="updateDinaVal()"><span class="val-display" id="dF-val">80 N</span></div>
+        <div class="ctrl-group"><label>Massa m (kg)</label><input type="range" id="dm" min="1" max="50" value="10" oninput="updateDinaVal()"><span class="val-display" id="dm-val">10 kg</span></div>
+        <div class="ctrl-group"><label>Atrito μ</label><input type="range" id="dmu" min="0" max="80" value="20" oninput="updateDinaVal()"><span class="val-display" id="dmu-val">0.20</span></div>
+        <button class="btn btn-primary" onclick="startDina()">▶ Aplicar Força</button>
+        <button class="btn btn-secondary" onclick="resetDina()">↺ Reset</button>
+      </div>
+      <canvas id="dina-canvas" height="260"></canvas>
+      <div class="stats">
+        <div class="stat"><div class="label">Aceleração</div><div class="value" id="d-acel">—</div></div>
+        <div class="stat"><div class="label">F. Atrito</div><div class="value" id="d-fat">—</div></div>
+        <div class="stat"><div class="label">F. Normal</div><div class="value" id="d-fn">—</div></div>
+        <div class="stat"><div class="label">Velocidade</div><div class="value" id="d-vel">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALC DINA -->
+  <div id="dina-calc" class="section">
+    <div class="card">
+      <h3>🧮 2ª Lei — F = m·a</h3>
+      <div class="formula-box">F = m · a &nbsp;|&nbsp; a = F/m &nbsp;|&nbsp; m = F/a</div>
+      <div class="calc-grid">
+        <div class="ctrl-group"><label>F (N) — vazio p/ calcular</label><input type="number" id="n2-f" placeholder="—"/></div>
+        <div class="ctrl-group"><label>m (kg) — vazio p/ calcular</label><input type="number" id="n2-m" placeholder="—"/></div>
+        <div class="ctrl-group"><label>a (m/s²) — vazio p/ calcular</label><input type="number" id="n2-a" placeholder="—"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcN2()">Calcular</button>
+      <div id="n2-result" style="display:none" class="result-box"><div class="r-label" id="n2-res-label">Resultado</div><div class="r-value" id="n2-res-val">—</div></div>
+    </div>
+    <div class="card">
+      <h3>🧮 Força de Atrito</h3>
+      <div class="formula-box">f = μ · N &nbsp;|&nbsp; N = m·g (plano horizontal)</div>
+      <div class="calc-grid">
+        <div class="ctrl-group"><label>μ</label><input type="number" id="at-mu" placeholder="ex: 0.3" step="0.01"/></div>
+        <div class="ctrl-group"><label>m (kg)</label><input type="number" id="at-m" placeholder="ex: 10"/></div>
+        <div class="ctrl-group"><label>g (m/s²)</label><input type="number" id="at-g" placeholder="10"/></div>
+      </div>
+      <button class="btn btn-primary" onclick="calcAtrito()">Calcular</button>
+      <div id="at-result" style="display:none">
+        <div class="stats">
+          <div class="stat"><div class="label">Normal N</div><div class="value" id="at-fn">—</div></div>
+          <div class="stat"><div class="label">Atrito f</div><div class="value" id="at-fat">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXEMPLOS DINA -->
+  <div id="dina-ex" class="section">
+    <div class="ex-filter">
+      <span>Filtrar:</span>
+      <button class="filt-btn active" onclick="filterEx('dina','todos',this)">Todos</button>
+      <button class="filt-btn" onclick="filterEx('dina','Newton',this)">Leis de Newton</button>
+      <button class="filt-btn" onclick="filterEx('dina','Atrito',this)">Atrito</button>
+      <button class="filt-btn" onclick="filterEx('dina','Plano',this)">Plano Inclinado</button>
+      <button class="filt-btn" onclick="filterEx('dina','Sistema',this)">Sistemas</button>
+      <button class="filt-btn" onclick="filterEx('dina','Circular',this)">Mov. Circular</button>
+    </div>
+
+    <!-- NEWTON -->
+    <div class="exercise" data-topic="Newton">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Leis de Newton</span><strong>Ex 1 — 2ª Lei básica</strong></div>
+      <p>Uma força resultante de 120 N age sobre um bloco de 15 kg em repouso. Qual a aceleração? Em quanto tempo atinge 30 m/s?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>① a = F/m = 120/15 = 8 m/s² ✔
+
+② v = v₀ + at → 30 = 0 + 8t → t = 3,75 s ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Newton">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Leis de Newton</span><strong>Ex 2 — 3ª Lei (ação e reação)</strong></div>
+      <p>Um patinador de 60 kg empurra uma parede e recua com aceleração de 2 m/s². Qual a força que ele exerce na parede? Qual a força que a parede exerce nele?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>F = m·a = 60 × 2 = 120 N
+
+Pela 3ª Lei de Newton (ação e reação):
+• Força do patinador na parede: 120 N (para frente)
+• Força da parede no patinador: 120 N (para trás) ✔
+
+As forças têm mesmo módulo, mesma direção e sentidos opostos.</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Newton">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Leis de Newton</span><strong>Ex 3 — Força resultante com ângulo</strong></div>
+      <p>Duas forças agem sobre um bloco: F₁ = 30 N (direita) e F₂ = 40 N (cima). Qual a força resultante? Se m = 5 kg, qual a aceleração?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>F_res = √(F₁² + F₂²) = √(900 + 1600) = √2500 = 50 N ✔
+
+θ = arctan(F₂/F₁) = arctan(40/30) = arctan(1,33) ≈ 53° acima da horizontal ✔
+
+a = F_res / m = 50 / 5 = 10 m/s² ✔</p></div>
+    </div>
+
+    <!-- ATRITO -->
+    <div class="exercise" data-topic="Atrito">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Atrito</span><strong>Ex 4 — Bloco com atrito</strong></div>
+      <p>Um bloco de 20 kg está sobre superfície com μ = 0,25 (g = 10 m/s²). Uma força horizontal de 80 N é aplicada. O bloco se move? Qual a aceleração?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>N = mg = 200 N
+f_max = μN = 0,25 × 200 = 50 N
+
+F = 80 N > f = 50 N → Bloco se move! ✔
+
+a = (F − f)/m = (80 − 50)/20 = 1,5 m/s² ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Atrito">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Atrito</span><strong>Ex 5 — Força mínima para mover</strong></div>
+      <p>Um armário de 80 kg está sobre piso com μₑ = 0,4 (g = 10 m/s²). Qual a força horizontal mínima para começar a movê-lo?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>N = mg = 80 × 10 = 800 N
+
+f_estático_máx = μₑ × N = 0,4 × 800 = 320 N
+
+Para mover: F > f_estático_máx
+F_mín > 320 N ✔
+
+Ou seja, precisa de mais de 320 N para tirar o armário do lugar.</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Atrito">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Atrito</span><strong>Ex 6 — Frenagem com atrito</strong></div>
+      <p>Um carro de 1000 kg vai a 20 m/s e freia com μ = 0,5 (g = 10 m/s²). Qual a desaceleração? Qual a distância de parada?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>f = μmg = 0,5 × 1000 × 10 = 5000 N
+
+a = −f/m = −5000/1000 = −5 m/s²
+
+Distância: vf² = v₀² + 2aΔs
+0 = 400 + 2×(−5)×Δs
+Δs = 400/10 = 40 m ✔</p></div>
+    </div>
+
+    <!-- PLANO INCLINADO -->
+    <div class="exercise" data-topic="Plano">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Plano Inclinado</span><strong>Ex 7 — Plano sem atrito</strong></div>
+      <p>Um bloco de 5 kg repousa em um plano inclinado de 30° (sem atrito, g = 10 m/s²). Qual a aceleração com que desce? Qual a força normal?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Componentes do peso:
+• Paralela (desce): P∥ = mgsinθ = 5×10×0,5 = 25 N
+• Perpendicular: P⊥ = mgcosθ = 5×10×0,866 ≈ 43,3 N
+
+Sem atrito: F_res = P∥ = 25 N
+a = F_res/m = 25/5 = 5 m/s² ✔
+
+N = P⊥ = 43,3 N ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Plano">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Plano Inclinado</span><strong>Ex 8 — Plano com atrito</strong></div>
+      <p>Um bloco de 8 kg em plano de 30°, μₑ = 0,4 (g = 10 m/s²). O bloco escorrega? Se μₖ = 0,3, qual a aceleração?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>N = mgcos30° = 8×10×0,866 ≈ 69,3 N
+f_est_máx = 0,4×69,3 ≈ 27,7 N
+P∥ = mgsin30° = 40 N
+
+40 N > 27,7 N → Escorrega! ✔
+
+fₖ = 0,3×69,3 ≈ 20,8 N
+F_res = 40 − 20,8 = 19,2 N
+a = 19,2/8 ≈ 2,4 m/s² ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Plano">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Plano Inclinado</span><strong>Ex 9 — Subindo o plano</strong></div>
+      <p>Um bloco de 10 kg sobe um plano de 37° com μₖ = 0,2 (g = 10 m/s², sen37°=0,6, cos37°=0,8). Qual a desaceleração enquanto sobe?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>N = mgcos37° = 10×10×0,8 = 80 N
+fₖ = μN = 0,2×80 = 16 N (opõe ao movimento → para baixo)
+
+P∥ = mgsin37° = 10×10×0,6 = 60 N (para baixo)
+
+F_res = −(P∥ + fₖ) = −(60+16) = −76 N (oposta ao movimento)
+a = −76/10 = −7,6 m/s² ✔
+
+O bloco desacelera a 7,6 m/s².</p></div>
+    </div>
+
+    <!-- SISTEMAS -->
+    <div class="exercise" data-topic="Sistema">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Sistemas</span><strong>Ex 10 — Máquina de Atwood</strong></div>
+      <p>m₁ = 3 kg e m₂ = 5 kg ligados por corda ideal sobre polia sem atrito (g = 10 m/s²). Determine aceleração e tensão T.</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>m₂ desce, m₁ sobe:
+
+m₂g − T = m₂a → 50 − T = 5a  ...(I)
+T − m₁g = m₁a → T − 30 = 3a  ...(II)
+
+(I)+(II): 20 = 8a → a = 2,5 m/s² ✔
+T = 30 + 3×2,5 = 37,5 N ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Sistema">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Sistemas</span><strong>Ex 11 — Dois blocos em série</strong></div>
+      <p>Dois blocos A (3 kg) e B (5 kg) são empurrados por F = 40 N sobre superfície sem atrito. Qual a aceleração do sistema? Qual a força de contato entre eles?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>Sistema completo (A+B):
+a = F/(m_A + m_B) = 40/(3+5) = 5 m/s² ✔
+
+Força de contato N_AB (força que A faz em B):
+N_AB = m_B × a = 5 × 5 = 25 N ✔
+
+Verificação por A:
+F − N_AB = m_A × a → 40 − 25 = 3×5 = 15 N ✔</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Sistema">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Sistemas</span><strong>Ex 12 — Bloco + plano + polia</strong></div>
+      <p>Bloco A (4 kg) sobre mesa sem atrito conectado por corda a bloco B (6 kg) que pende verticalmente (g = 10 m/s²). Determine a aceleração e a tensão.</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>B desce puxando A horizontalmente:
+
+Para B: m_B·g − T = m_B·a → 60 − T = 6a  ...(I)
+Para A: T = m_A·a → T = 4a             ...(II)
+
+(I)+(II): 60 = 10a → a = 6 m/s² ✔
+T = 4×6 = 24 N ✔</p></div>
+    </div>
+
+    <!-- CIRCULAR -->
+    <div class="exercise" data-topic="Circular">
+      <div class="exercise-header"><span class="badge badge-em">Ens. Médio</span><span class="badge badge-topic">Mov. Circular</span><strong>Ex 13 — Força centrípeta</strong></div>
+      <p>Um carro de 1000 kg faz uma curva de raio 50 m a 72 km/h. Qual a força centrípeta necessária? O atrito é suficiente se μ = 0,5 (g = 10 m/s²)?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>v = 72 km/h = 20 m/s
+
+F_c = mv²/r = 1000×400/50 = 8000 N ✔
+
+Atrito máximo disponível:
+f_max = μmg = 0,5×1000×10 = 5000 N
+
+8000 N > 5000 N → Atrito insuficiente! O carro derrapa. ✔
+
+Velocidade máxima segura:
+v_max = √(μgr) = √(0,5×10×50) = √250 ≈ 15,8 m/s ≈ 57 km/h</p></div>
+    </div>
+
+    <div class="exercise" data-topic="Circular">
+      <div class="exercise-header"><span class="badge badge-es">Ens. Superior</span><span class="badge badge-topic">Mov. Circular</span><strong>Ex 14 — Loop vertical</strong></div>
+      <p>Uma bolinha de 0,2 kg percorre um loop vertical de raio 1 m (g = 10 m/s²). Qual a velocidade mínima no topo para manter contato? Qual a força normal no fundo se v_fundo = 8 m/s?</p>
+      <button class="btn btn-secondary toggle-sol" onclick="toggleSol(this)">Ver Resolução</button>
+      <div class="solution"><p>No topo (N = 0, mínimo):
+mg = mv²/r → v_min = √(gr) = √(10×1) = √10 ≈ 3,16 m/s ✔
+
+No fundo (v = 8 m/s):
+N − mg = mv²/r
+N = m(g + v²/r) = 0,2×(10 + 64/1)
+N = 0,2×74 = 14,8 N ✔
+
+(Normal é 7,4× o peso → sensação de "força G")</p></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// NAV
+function setMain(tab,el){
+  document.getElementById('tab-cine').style.display='none';
+  document.getElementById('tab-dina').style.display='none';
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll('.main-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(tab==='cine')drawCineStatic(); else drawDinaStatic();
+}
+function setSub(main,sub,el){
+  document.querySelectorAll(`#tab-${main} .section`).forEach(t=>t.classList.remove('active'));
+  document.getElementById(`${main}-${sub}`).classList.add('active');
+  el.closest('.sub-tabs').querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+}
+function setLevel(lvl,el){
+  document.querySelectorAll('.lvl-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  document.body.classList.toggle('nivel-es',lvl==='es');
+}
+function toggleSol(btn){
+  const sol=btn.nextElementSibling;
+  sol.classList.toggle('show');
+  btn.textContent=sol.classList.contains('show')?'Ocultar Resolução':'Ver Resolução';
+}
+function filterEx(tab,topic,el){
+  const container=document.getElementById(`${tab}-ex`);
+  container.querySelectorAll('.exercise').forEach(ex=>{
+    ex.classList.toggle('ex-hidden', topic!=='todos' && ex.dataset.topic!==topic);
+  });
+  el.closest('.ex-filter').querySelectorAll('.filt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// CANVAS CINEMÁTICA
+const CC=()=>document.getElementById('cine-canvas');
+let cineAnim=null,cineTrail=[];
+function updateCineVal(){
+  document.getElementById('cv0-val').textContent=document.getElementById('cv0').value+' m/s';
+  document.getElementById('cang-val').textContent=document.getElementById('cang').value+'°';
+  document.getElementById('cgrav-val').textContent=document.getElementById('cgrav').value+' m/s²';
+}
+function drawCineStatic(){
+  const c=CC(),ctx=c.getContext('2d');
+  c.width=c.offsetWidth||800;
+  drawCineGround(ctx,c.width,c.height);
+}
+function drawCineGround(ctx,w,h){
+  ctx.fillStyle='#060d1a';ctx.fillRect(0,0,w,h);
+  ctx.strokeStyle='#1e3a5f';ctx.lineWidth=1;
+  for(let i=0;i<w;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,h);ctx.stroke();}
+  for(let j=0;j<h;j+=40){ctx.beginPath();ctx.moveTo(0,j);ctx.lineTo(w,j);ctx.stroke();}
+  ctx.fillStyle='#1e3a5f';ctx.fillRect(0,h-30,w,30);
+  ctx.fillStyle='#2d5a3d';ctx.fillRect(0,h-32,w,4);
+}
+function launchProjectile(){
+  cancelAnimationFrame(cineAnim);cineTrail=[];
+  const c=CC();c.width=c.offsetWidth||800;
+  const W=c.width,H=c.height,ctx=c.getContext('2d');
+  const v0=+document.getElementById('cv0').value;
+  const ang=+document.getElementById('cang').value*Math.PI/180;
+  const g=+document.getElementById('cgrav').value;
+  const vx=v0*Math.cos(ang),vy=v0*Math.sin(ang);
+  const T=2*vy/g,R=vx*T,Hmax=vy*vy/(2*g);
+  const scale=Math.min((W-60)/Math.max(R,1),(H-80)/Math.max(Hmax,1))*0.85;
+  const ox=40,oy=H-32;
+  document.getElementById('stat-alcance').textContent=R.toFixed(1)+' m';
+  document.getElementById('stat-hmax').textContent=Hmax.toFixed(1)+' m';
+  document.getElementById('stat-tvoo').textContent=T.toFixed(2)+' s';
+  document.getElementById('stat-vx').textContent=vx.toFixed(1)+' m/s';
+  document.getElementById('stat-vy').textContent=vy.toFixed(1)+' m/s';
+  let t=0,dt=T/120;
+  function frame(){
+    ctx.clearRect(0,0,W,H);drawCineGround(ctx,W,H);
+    ctx.beginPath();ctx.strokeStyle='#1e3a5f44';ctx.lineWidth=2;ctx.setLineDash([4,4]);
+    for(let tt=0;tt<=T;tt+=T/80){const px=ox+vx*tt*scale,py=oy-(vy*tt-0.5*g*tt*tt)*scale;tt===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+    ctx.stroke();ctx.setLineDash([]);
+    const px=ox+vx*t*scale,py=oy-(vy*t-0.5*g*t*t)*scale;
+    cineTrail.push({x:px,y:py});
+    if(cineTrail.length>2){
+      ctx.beginPath();
+      const grd=ctx.createLinearGradient(cineTrail[0].x,cineTrail[0].y,px,py);
+      grd.addColorStop(0,'#00d4ff00');grd.addColorStop(1,'#00d4ffcc');
+      ctx.strokeStyle=grd;ctx.lineWidth=3;
+      ctx.moveTo(cineTrail[0].x,cineTrail[0].y);
+      cineTrail.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+    }
+    const grd2=ctx.createRadialGradient(px,py,1,px,py,10);
+    grd2.addColorStop(0,'#fff');grd2.addColorStop(1,'#00d4ff');
+    ctx.beginPath();ctx.arc(px,py,10,0,Math.PI*2);ctx.fillStyle=grd2;ctx.fill();
+    const vxt=vx,vyt=vy-g*t;
+    ctx.beginPath();ctx.strokeStyle='#f59e0b';ctx.lineWidth=2.5;
+    ctx.moveTo(px,py);ctx.lineTo(px+vxt*3,py-vyt*3);ctx.stroke();
+    ctx.fillStyle='#94a3b8';ctx.font='12px monospace';
+    ctx.fillText(`t=${t.toFixed(2)}s  x=${(vx*t).toFixed(1)}m  y=${Math.max(0,vy*t-0.5*g*t*t).toFixed(1)}m`,10,20);
+    t+=dt;
+    if(t<=T+dt) cineAnim=requestAnimationFrame(frame);
+    else{
+      ctx.beginPath();ctx.arc(ox+R*scale,oy,8,0,Math.PI*2);ctx.fillStyle='#10b981';ctx.fill();
+      ctx.fillStyle='#10b981';ctx.font='bold 12px monospace';
+      ctx.fillText('R='+R.toFixed(1)+'m',ox+R*scale-20,oy-14);
+    }
+  }
+  frame();
+}
+function resetProjectile(){
+  cancelAnimationFrame(cineAnim);cineTrail=[];
+  ['stat-alcance','stat-hmax','stat-tvoo','stat-vx','stat-vy'].forEach(id=>document.getElementById(id).textContent='—');
+  drawCineStatic();
+}
+
+// CANVAS DINÂMICA
+const DC=()=>document.getElementById('dina-canvas');
+let dinaAnim=null;
+function updateDinaVal(){
+  document.getElementById('dF-val').textContent=document.getElementById('dF').value+' N';
+  document.getElementById('dm-val').textContent=document.getElementById('dm').value+' kg';
+  document.getElementById('dmu-val').textContent=(document.getElementById('dmu').value/100).toFixed(2);
+}
+function drawDinaStatic(){
+  const c=DC(),ctx=c.getContext('2d');
+  c.width=c.offsetWidth||800;
+  drawDinaFrame(ctx,c.width,c.height,80,0,0);
+}
+function drawDinaFrame(ctx,W,H,bx,vel,t){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#060d1a';ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#1e3a5f';ctx.fillRect(0,H-40,W,40);
+  ctx.fillStyle='#2d5a3d';ctx.fillRect(0,H-43,W,4);
+  const bw=70,bh=55,by=H-43-bh;
+  const grd=ctx.createLinearGradient(bx,by,bx+bw,by+bh);
+  grd.addColorStop(0,'#3b82f6');grd.addColorStop(1,'#1d4ed8');
+  ctx.fillStyle=grd;ctx.fillRect(bx,by,bw,bh);
+  ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.strokeRect(bx,by,bw,bh);
+  ctx.fillStyle='#fff';ctx.font='bold 13px monospace';ctx.textAlign='center';
+  ctx.fillText(document.getElementById('dm').value+'kg',bx+bw/2,by+bh/2+5);ctx.textAlign='left';
+  const F=+document.getElementById('dF').value;
+  if(F>0){
+    const aL=Math.min(F*0.8,120);
+    ctx.beginPath();ctx.strokeStyle='#f59e0b';ctx.lineWidth=4;
+    ctx.moveTo(Math.max(10,bx-aL),by+bh/2);ctx.lineTo(bx,by+bh/2);ctx.stroke();
+    ctx.beginPath();ctx.fillStyle='#f59e0b';
+    ctx.moveTo(bx,by+bh/2);ctx.lineTo(bx-12,by+bh/2-8);ctx.lineTo(bx-12,by+bh/2+8);ctx.fill();
+    ctx.fillStyle='#f59e0b';ctx.font='bold 12px monospace';
+    ctx.fillText('F='+F+'N',Math.max(10,bx-aL),by+bh/2-12);
+  }
+  ctx.beginPath();ctx.strokeStyle='#a78bfa';ctx.lineWidth=2;
+  ctx.moveTo(bx+bw/2,by);ctx.lineTo(bx+bw/2,by-35);ctx.stroke();
+  ctx.fillStyle='#a78bfa';ctx.font='11px monospace';ctx.fillText('N',bx+bw/2+4,by-20);
+  ctx.beginPath();ctx.strokeStyle='#f87171';ctx.lineWidth=2;
+  ctx.moveTo(bx+bw/2,by+bh);ctx.lineTo(bx+bw/2,by+bh+35);ctx.stroke();
+  ctx.fillStyle='#f87171';ctx.fillText('mg',bx+bw/2+4,by+bh+25);
+  if(vel>0){
+    const mu=document.getElementById('dmu').value/100,m=document.getElementById('dm').value;
+    const fat=(mu*m*10).toFixed(0);
+    ctx.beginPath();ctx.strokeStyle='#ef4444';ctx.lineWidth=3;
+    ctx.moveTo(bx+bw,by+bh-8);ctx.lineTo(bx+bw+50,by+bh-8);ctx.stroke();
+    ctx.fillStyle='#ef4444';ctx.font='11px monospace';ctx.fillText('f='+fat+'N',bx+bw+4,by+bh-12);
+  }
+  ctx.fillStyle='#94a3b8';ctx.font='12px monospace';
+  ctx.fillText(`v = ${vel.toFixed(1)} m/s  |  t = ${t.toFixed(1)} s`,16,22);
+}
+function startDina(){
+  cancelAnimationFrame(dinaAnim);
+  const c=DC();c.width=c.offsetWidth||800;
+  const W=c.width,H=c.height,ctx=c.getContext('2d');
+  const F=+document.getElementById('dF').value,m=+document.getElementById('dm').value;
+  const mu=document.getElementById('dmu').value/100,fat=mu*m*10;
+  const a=(F-fat)/m,fn=m*10;
+  document.getElementById('d-acel').textContent=a.toFixed(2)+' m/s²';
+  document.getElementById('d-fat').textContent=fat.toFixed(1)+' N';
+  document.getElementById('d-fn').textContent=fn.toFixed(1)+' N';
+  if(a<=0){drawDinaFrame(ctx,W,H,80,0,0);document.getElementById('d-vel').textContent='0 (estático)';return;}
+  let bx=80,vel=0,t=0;
+  function frame(){
+    vel+=a/60;t+=1/60;bx+=vel*20/60;
+    document.getElementById('d-vel').textContent=vel.toFixed(1)+' m/s';
+    drawDinaFrame(ctx,W,H,bx,vel,t);
+    if(bx<W-80) dinaAnim=requestAnimationFrame(frame);
+  }
+  frame();
+}
+function resetDina(){
+  cancelAnimationFrame(dinaAnim);
+  ['d-acel','d-fat','d-fn','d-vel'].forEach(id=>document.getElementById(id).textContent='—');
+  drawDinaStatic();
+}
+
+// CALCULADORAS
+function calcMRU(){
+  const s=((+document.getElementById('mru-s0').value||0)+(+document.getElementById('mru-v').value)*(+document.getElementById('mru-t').value));
+  document.getElementById('mru-res-val').textContent=s.toFixed(2)+' m';
+  document.getElementById('mru-result').style.display='block';
+}
+function calcMRUV(){
+  const s0=+document.getElementById('mruv-s0').value||0,v0=+document.getElementById('mruv-v0').value;
+  const a=+document.getElementById('mruv-a').value,t=+document.getElementById('mruv-t').value;
+  document.getElementById('mruv-s').textContent=(s0+v0*t+.5*a*t*t).toFixed(2)+' m';
+  document.getElementById('mruv-v').textContent=(v0+a*t).toFixed(2)+' m/s';
+  document.getElementById('mruv-result').style.display='block';
+}
+function calcObliquo(){
+  const v0=+document.getElementById('ob-v0').value,ang=+document.getElementById('ob-ang').value*Math.PI/180;
+  const g=+document.getElementById('ob-g').value||9.8;
+  document.getElementById('ob-r').textContent=(v0*v0*Math.sin(2*ang)/g).toFixed(2)+' m';
+  document.getElementById('ob-h').textContent=(v0*v0*Math.sin(ang)**2/(2*g)).toFixed(2)+' m';
+  document.getElementById('ob-t').textContent=(2*v0*Math.sin(ang)/g).toFixed(2)+' s';
+  document.getElementById('ob-result').style.display='block';
+}
+function calcN2(){
+  const fv=document.getElementById('n2-f').value,mv=document.getElementById('n2-m').value,av=document.getElementById('n2-a').value;
+  if([fv,mv,av].filter(v=>v==='').length!==1){alert('Deixe exatamente um campo vazio!');return;}
+  let res,label;
+  if(fv===''){res=(+mv)*(+av);label='Força F (N)';}
+  else if(mv===''){res=(+fv)/(+av);label='Massa m (kg)';}
+  else{res=(+fv)/(+mv);label='Aceleração a (m/s²)';}
+  document.getElementById('n2-res-label').textContent=label;
+  document.getElementById('n2-res-val').textContent=res.toFixed(3);
+  document.getElementById('n2-result').style.display='block';
+}
+function calcAtrito(){
+  const mu=+document.getElementById('at-mu').value,m=+document.getElementById('at-m').value;
+  const g=+document.getElementById('at-g').value||10,fn=m*g;
+  document.getElementById('at-fn').textContent=fn.toFixed(1)+' N';
+  document.getElementById('at-fat').textContent=(mu*fn).toFixed(1)+' N';
+  document.getElementById('at-result').style.display='block';
+}
+
+window.addEventListener('load',()=>{drawCineStatic();drawDinaStatic();updateCineVal();updateDinaVal();});
+window.addEventListener('resize',()=>{drawCineStatic();drawDinaStatic();});
+</script>
+</body>
+</html>
